@@ -27,14 +27,19 @@ impl Generate {
         fs::read_to_string(path).expect("Unable to read file")
     }
 
-    pub fn generate_template(path: String) {
-        if let Ok(entries) = fs::read_dir(path) {
+    pub fn generate_template(posts_path: &String, template_path: &String) {
+        if let Ok(entries) = fs::read_dir(posts_path) {
             for entry in entries {
                 if let Ok(entry) = entry {
                     if let Ok(metadata) = entry.metadata() {
                         let path: String =
                             String::from(entry.path().into_os_string().into_string().unwrap());
-                        Generate::include_in_template(&Generate::read_raw_files(&path))
+                        println!("{}", path);
+
+                        Generate::include_in_template(
+                            &Generate::read_raw_files(&path),
+                            &template_path,
+                        )
                     } else {
                         println!("Couldn't get metadata for {:?}", entry.path());
                     }
@@ -43,7 +48,20 @@ impl Generate {
         }
     }
 
-    fn include_in_template(file: &String) {}
+    fn include_in_template(file: &String, template_path: &String) {
+        // Load the template file we want to manipulate
+        let template = Generate::read_raw_files(&template_path);
+
+        let search_param = "{{%elements%}}";
+
+        let html : String = markdown::to_html(file);
+
+        let build: String = html.as_str().to_owned() + search_param;
+
+        let result = template.replace(search_param, build.as_str());
+
+        Generate::save_template(&String::from("./dist"), &result);
+    }
 
     pub fn include_metadata_in_template(config_path: &String, template_path: &String) {
         // Load the yaml config file

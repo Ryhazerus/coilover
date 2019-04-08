@@ -1,5 +1,6 @@
 extern crate clap;
 extern crate yaml_rust;
+extern crate markdown;
 
 mod config;
 mod generate;
@@ -32,8 +33,13 @@ fn main() {
     }
 
     if matches.is_present("generate") {
-        let test = generate::Generate::include_metadata_in_template(
-            &String::from("./src/mock/config/wastegate.yml"),
+        // let test = generate::Generate::include_metadata_in_template(
+        //     &String::from("./src/mock/config/wastegate.yml"),
+        //     &String::from("./src/templates/index.htm"),
+        // );
+
+        let test = generate::Generate::generate_template (
+            &String::from("./src/mock/posts"),
             &String::from("./src/templates/index.htm"),
         );
     }
