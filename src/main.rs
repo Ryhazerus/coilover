@@ -1,6 +1,6 @@
 extern crate clap;
-extern crate yaml_rust;
 extern crate markdown;
+extern crate yaml_rust;
 
 mod config;
 mod generate;
@@ -26,21 +26,17 @@ fn main() {
                 .long("generate")
                 .help("will generate a new static site"),
         )
+        .arg(
+            Arg::with_name("init")
+                .short("i")
+                .long("init")
+                .help("will initialize the wategate application"),
+        )
         .get_matches();
 
-    if let Some(c) = matches.value_of("config") {
-        println!("Value for config: {}", c);
-    }
-
-    if matches.is_present("generate") {
-        // let test = generate::Generate::include_metadata_in_template(
-        //     &String::from("./src/mock/config/wastegate.yml"),
-        //     &String::from("./src/templates/index.htm"),
-        // );
-
-        let test = generate::Generate::generate_template (
-            &String::from("./src/mock/posts"),
-            &String::from("./src/templates/index.htm"),
-        );
+    if matches.is_present("init") {
+        let configuration = config::Config::new();
+        config::Config::generate_config_directories(configuration.get_directory_path());
+        config::Config::generate_config_file(configuration.get_directory_path());
     }
 }

@@ -1,26 +1,14 @@
+use crate::config::Config;
 use std::fs;
 use yaml_rust::{YamlEmitter, YamlLoader};
 
-enum Conversion {
-    h1,
-    h2,
-    h3,
-    p,
-}
-
 pub struct Generate {
-    pub directory_path: String,
-    pub template_path: String,
-    pub build_directory: String,
+    pub config: Config,
 }
 
 impl Generate {
-    pub fn new(path: &str, template_path: &str, build_directory: &str) -> Generate {
-        Generate {
-            directory_path: String::from(path),
-            template_path: String::from(template_path),
-            build_directory: String::from(build_directory),
-        }
+    pub fn new(config: Config) -> Generate {
+        Generate { config: config }
     }
 
     fn read_raw_files(path: &String) -> String {
@@ -54,7 +42,7 @@ impl Generate {
 
         let search_param = "{{%elements%}}";
 
-        let html : String = markdown::to_html(file);
+        let html: String = markdown::to_html(file);
 
         let build: String = html.as_str().to_owned() + search_param;
 
@@ -85,8 +73,11 @@ impl Generate {
     }
 
     fn save_template(path: &String, file_contents: &String) {
+        // Create the directory id it doesn't exist
         fs::create_dir_all(path).expect("error cannot create dir");
+        // Create the full path with a filename
         let filename: String = path.as_str().to_owned() + "/index.htm";
+        // Write the post to a file
         fs::write(filename, file_contents).expect("Unable to write file");
     }
 }
