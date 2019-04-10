@@ -1,4 +1,4 @@
-# Wategate
+# Wastegate
 
 Wastegate is a Rust based cli application for generating static websites. With Wastegate you can write your posts in markdown and run the wastegate application. The program supports both statically generated files and an internal web server to serve the files directly from the application.
 
@@ -24,7 +24,8 @@ Use the build tool [cargo](https://github.com/rust-lang/cargo) to install, build
 ## Usage
 
 ```
-zahyr S. <zahyr.seferina@gmail.com>
+Wastegate 1.0
+Zahyr S. <zahyr.seferina@gmail.com>
 Rust based static site generator, with no extra fat.
 
 USAGE:
@@ -33,10 +34,10 @@ USAGE:
 FLAGS:
     -g, --generate    will generate a new static site
     -h, --help        Prints help information
+    -i, --init        will initialize the wastegate application
     -V, --version     Prints version information
 
 OPTIONS:
-    -c, --config <FILE>    Sets a custom config file
 ```
 
 ### Posts
@@ -45,7 +46,7 @@ To generate a new static site, put your markdown files in posts folder and run t
 ## Contributing
 For contributions and change requests, please open an issue first to discuss what you would like to change.
 
-And further more please make sure to update tests as appropriate.
+And furthermore please make sure to update tests as appropriate.
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
