@@ -25,10 +25,7 @@ impl Generate {
                         let path: String =
                             String::from(entry.path().into_os_string().into_string().unwrap());
                         println!("{}", path);
-                        Generate::include_in_template(
-                            &Generate::read_raw_files(&path),
-                            &template,
-                        )
+                        Generate::include_in_template(&Generate::read_raw_files(&path), &template)
                     } else {
                         println!("Couldn't get metadata for {:?}", entry.path());
                     }
@@ -77,7 +74,8 @@ impl Generate {
         // Create the full path with a filename
         let filename: String = path.as_str().to_owned() + "/index.htm";
         // Write the post to a file
-        fs::write(filename, file_contents).expect("Unable to write file");
+        let cleaned = Generate::clean_up(file_contents);
+        fs::write(filename, cleaned).expect("Unable to write file");
     }
 
     pub fn get_html_template() -> String {
@@ -98,5 +96,11 @@ impl Generate {
                 </body>
                 </html>";
         String::from(html)
+    }
+
+    pub fn clean_up(html: &String) -> String {
+        let search_param = "{{%elements%}}";
+        let result = html.replace(search_param, "");
+        result
     }
 }
