@@ -1,14 +1,18 @@
 use std::fs;
+use std::path::Path;
 use yaml_rust::{YamlEmitter, YamlLoader};
 
+#[derive(Debug, Clone)]
 pub struct Config {
-    directory_path: String, // Base path for the directory where everything is stored
+    pub directory_path: String, // Base path for the directory where everything is stored
+    pub configuration_path: String
 }
 
 impl Config {
     pub fn new() -> Config {
         Config {
-            directory_path: String::from("./wastegate"), 
+            directory_path: String::from("./wastegate"),
+            configuration_path: String::from("")
         }
     }
 
@@ -27,12 +31,11 @@ impl Config {
 
         let mut out_str = String::new(); // output string we want to dump the yml file in and save
         {
-            let mut emitter = YamlEmitter::new(&mut out_str); // Create an emitter callback 
+            let mut emitter = YamlEmitter::new(&mut out_str); // Create an emitter callback
             emitter.dump(buffer).unwrap(); // dump the YAML object to a buffer String
         }
 
         let full_path: String = path.to_owned() + "/wastegate_config.yml"; // Generate the full path as to where to save the config
-
         fs::write(full_path, out_str).expect("unable to write file"); // Save the file
     }
 
@@ -40,11 +43,20 @@ impl Config {
         let sub_folders = vec!["/template", "/posts", "/dist"];
         for x in &sub_folders {
             let full_path = path.to_owned() + x;
-            fs::create_dir_all(full_path).expect("error cannot create dir");
+            if !Config::check_directories(&full_path) {
+                fs::create_dir_all(full_path).expect("error cannot create dir");
+            } else {
+                println!("Wastegate is already configured");
+                return;
+            }
         }
     }
 
     pub fn get_directory_path(&self) -> &str {
         self.directory_path.as_str().as_ref()
+    }
+
+    pub fn check_directories(path: &String) -> bool {
+        Path::new(path).exists()
     }
 }

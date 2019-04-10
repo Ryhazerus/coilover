@@ -34,9 +34,25 @@ fn main() {
         )
         .get_matches();
 
+    let configuration = config::Config::new();
+
     if matches.is_present("init") {
-        let configuration = config::Config::new();
         config::Config::generate_config_directories(configuration.get_directory_path());
         config::Config::generate_config_file(configuration.get_directory_path());
+    }
+
+    let gen = generate::Generate::new(configuration.clone());
+    if matches.is_present("generate") {
+        let config_path = configuration.directory_path.to_owned() + "/wastegate_config.yml";
+        let template_path = configuration.directory_path.to_owned() + "/template";
+        let post_path = configuration.directory_path.to_owned() + "/posts";
+
+        let buffer = generate::Generate::include_metadata_in_template(
+            config_path.as_str(),
+            template_path.as_str(),
+            &generate::Generate::get_html_template(),
+        );
+
+        generate::Generate::generate_template(&post_path, &buffer);
     }
 }
