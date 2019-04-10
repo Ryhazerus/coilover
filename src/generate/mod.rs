@@ -16,34 +16,40 @@ impl Generate {
     }
 
     pub fn generate_template(posts_path: &String, template: &String) {
-        print!("{}", posts_path);
+        let mut result: String = String::from("");
         if let Ok(entries) = fs::read_dir(posts_path) {
-            println!("test");
             for entry in entries {
                 if let Ok(entry) = entry {
                     if let Ok(metadata) = entry.metadata() {
                         let path: String =
                             String::from(entry.path().into_os_string().into_string().unwrap());
-                        println!("{}", path);
-                        Generate::include_in_template(&Generate::read_raw_files(&path), &template)
+                        result.push_str(
+                            Generate::include_in_template(
+                                &Generate::read_raw_files(&path),
+                                &template,
+                            )
+                            .as_str(),
+                        );
                     } else {
                         println!("Couldn't get metadata for {:?}", entry.path());
                     }
                 }
             }
         }
+
+        Generate::save_template(&String::from("./dist"), &result);
     }
 
-    pub fn include_in_template(file: &String, template: &String) {
+    pub fn include_in_template(file: &String, template: &String) -> String {
         let search_param = "{{%elements%}}";
 
-        let html: String = markdown::to_html(file);
+        let mut html: String = markdown::to_html(file);
+        html.push_str("<hr>");
 
         let build: String = html.as_str().to_owned() + search_param;
 
         let result = template.replace(search_param, build.as_str());
-
-        Generate::save_template(&String::from("./dist"), &result);
+        result
     }
 
     pub fn include_metadata_in_template(
@@ -88,7 +94,9 @@ impl Generate {
                 <title>{{%title%}}</title>
                 <meta name='description' content='{{%description%}}'>
                 <meta name='author' content='{{%author%}}'>
-
+                <style type='text/css'>body{margin:40px
+                auto;max-width:650px;line-height:1.6;font-size:18px;color:#444;padding:0
+                10px}h1,h2,h3{line-height:1.2}</style>
                 </head>
 
                 <body>
