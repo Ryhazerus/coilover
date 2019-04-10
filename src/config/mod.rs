@@ -1,3 +1,4 @@
+use std::env;
 use std::fs;
 use std::path::Path;
 use yaml_rust::{YamlEmitter, YamlLoader};
@@ -5,14 +6,16 @@ use yaml_rust::{YamlEmitter, YamlLoader};
 #[derive(Debug, Clone)]
 pub struct Config {
     pub directory_path: String, // Base path for the directory where everything is stored
-    pub configuration_path: String
+    pub configuration_path: String,
 }
 
 impl Config {
     pub fn new() -> Config {
+        let path = env::current_dir().expect("cannot get current directory");
+        let home_path: String = path.display().to_string();
         Config {
-            directory_path: String::from("./wastegate"),
-            configuration_path: String::from("")
+            directory_path: home_path,
+            configuration_path: String::from(""),
         }
     }
 

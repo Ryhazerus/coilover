@@ -1,6 +1,7 @@
 extern crate clap;
 extern crate markdown;
 extern crate yaml_rust;
+extern crate dirs;
 
 mod config;
 mod generate;
