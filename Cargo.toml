@@ -1,0 +1,12 @@
+[package]
+name = "coilover"
+version = "0.1.0"
+authors = ["zahyrseferina <zahyr.seferina@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+clap = "2.33.0"
+yaml-rust = "0.4.3"
+markdown = "0.2.0"
+dirs = "1.0.5"
+cargo-wix = "0.1.1"
