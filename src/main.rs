@@ -1,10 +1,10 @@
 //! Coilover is a static website generator built purely in Rust.
 //! The app uses the clap crate to easily build a cli application
-//! and parse arguments. 
-//! 
+//! and parse arguments.
+//!
 //! The main file consists of the cli initialization process
 //! and the actions for the currently supported features.
-//! 
+//!
 //! Author: Zahyr Seferina
 //! Version: 1.0.0
 
@@ -12,11 +12,12 @@ extern crate clap;
 extern crate dirs;
 extern crate markdown;
 extern crate yaml_rust;
+extern crate threadpool;
 
 mod config;
 mod generate;
 
-use clap::{App, Arg}; 
+use clap::{App, Arg};
 
 fn main() {
     let matches = App::new("Coilover")
@@ -38,7 +39,7 @@ fn main() {
         .get_matches();
 
     // Auto-generate the configuration files
-    let configuration : config::Config = config::Config::new();
+    let configuration: config::Config = config::Config::new();
     if matches.is_present("init") {
         &configuration.generate_config();
     }
@@ -47,6 +48,6 @@ fn main() {
     // posts in the designated folder.
     if matches.is_present("generate") {
         generate::Generate::new()
-        .build(&configuration.get_full_config_file());;
+        .build_posts(configuration.get_full_posts_file().to_owned(), configuration.get_dist_path().to_owned(), configuration.get_full_config_file().to_owned());
     }
 }

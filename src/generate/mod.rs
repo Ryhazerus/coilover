@@ -1,11 +1,15 @@
 //! Generate module
-//! 
-//! Generate module is the custom module that generates files based on the 
+//!
+//! Generate module is the custom module that generates files based on the
 //! provided markdown files. This module also converts the markdown files
 //! into HTML files.
 
 use std::fs;
-use yaml_rust::{YamlLoader};
+
+use std::sync::mpsc::channel;
+use threadpool::ThreadPool;
+use yaml_rust::YamlLoader;
+use std::path::MAIN_SEPARATOR;
 
 pub struct Generate {}
 
@@ -19,44 +23,69 @@ impl Generate {
         Generate {}
     }
 
-    /// Build function is a accessor method to generate the 
-    /// body of the generated HTML page and implement the markdown
-    /// posts into the HTML file as HTML articles.
-    pub fn build(&self,config: &str) {
-        Generate::include_metadata_in_template(&self, config);
-        Generate::generate_template(&self, config);
+    pub fn build_posts(&self, post_path: String, dist_path: String, config: String) {
+        // Get all the paths in the posts folder.
+        let posts: Vec<String> = Generate::get_post_files(post_path);
+
+        // Define a base number of worker threads.
+        let mut n_workers: usize = 10;
+
+        // Create as many workers as there are posts if the amount of posts is under 100.
+        if posts.len() <= 100 && posts.len() > 0 {
+            n_workers = posts.len();
+        }
+        println!("number of threads: {}", n_workers);
+        // Create a threadpool with the amount of workers
+        let pool = ThreadPool::new(n_workers);
+
+        // Loop over the defined paths and spawn a thread to handle the mark down converions per post.
+        for post in posts {
+            let filename_split: Vec<&str> = post.split(MAIN_SEPARATOR).collect();
+
+            let filename : String = String::from(filename_split[filename_split.len() -1]);
+
+            let owned_path = dist_path.to_owned();
+            let owned_config = config.to_owned();
+
+            pool.execute(move || {
+                Generate::generate_posts(post.clone(), owned_path, filename.clone(), owned_config);
+            });
+        }
+
+        pool.join();
     }
 
-    /// Generate_template function will loop through the specified 
-    /// posts directory and converts all the markdown posts to HTML
-    /// articles that can be implemented in a single HTML page.
-    pub fn generate_template(&self, config: &str) {
-        let mut result: String = String::from("");
+    fn generate_index(dist_path: String){
+        
+    }
+
+    fn generate_posts(post_path: String, dist_path: String, filename: String, config: String) {
+        let metatdata = Generate::include_metadata_in_template(config);
+        let raw_file: String = Generate::read_raw_files(post_path.as_str());
+        let html = Generate::markdown_to_html(raw_file.as_str(), metatdata.as_str());
+        Generate::save_file(dist_path.as_str(), html.as_str(), filename.as_str());
+
+    }
+
+    fn get_post_files(config: String) -> Vec<String> {
+        let mut posts: Vec<String> = Vec::new();
         if let Ok(entries) = fs::read_dir(config) {
             for entry in entries {
                 if let Ok(entry) = entry {
                     if let Ok(_metadata) = entry.metadata() {
-                        let path: String =
-                            String::from(entry.path().into_os_string().into_string().unwrap());
-                        result.push_str(
-                            Generate::include_in_template(
-                                &Generate::read_raw_files(&path),
-                                &Generate::get_html_template(),
-                            )
-                            .as_str(),
-                        );
+                        let path = entry.path().into_os_string().into_string().unwrap();
+                        posts.push(path);
                     } else {
                         println!("Couldn't get metadata for {:?}", entry.path());
                     }
                 }
             }
         }
-        // Save the generated template to the dist folder.
-        Generate::save_template(&String::from("./dist"), &result);
+        posts
     }
 
     /// Read_raw_files will real in a file to string,
-    /// if the file cannot be read we catch the error thrown 
+    /// if the file cannot be read we catch the error thrown
     /// by the filesystem and print it to the console.
     fn read_raw_files(path: &str) -> String {
         fs::read_to_string(path).expect("Unable to read file")
@@ -64,7 +93,7 @@ impl Generate {
 
     /// Include_in_template will include a given string into a HTML template
     /// file.
-    fn include_in_template(file: &String, template: &String) -> String {
+    fn markdown_to_html(file: &str, template: &str) -> String {
         let search_param = "{{%elements%}}";
         let mut html: String = markdown::to_html(file);
         html.push_str("<hr>");
@@ -73,12 +102,12 @@ impl Generate {
         result
     }
 
-    /// Include_metadata_in_template function will include all the 
-    /// metadata from the config file into the HTML template 
-    /// that needs to be generated. 
-    fn include_metadata_in_template(&self, config: &str) -> String {
+    /// Include_metadata_in_template function will include all the
+    /// metadata from the config file into the HTML template
+    /// that needs to be generated.
+    fn include_metadata_in_template(config: String) -> String {
         // Load the yaml config file
-        let config = YamlLoader::load_from_str(&Generate::read_raw_files(config)).unwrap();
+        let config = YamlLoader::load_from_str(&Generate::read_raw_files(config.as_str())).unwrap();
 
         // Load all the variables from the yaml file.
         let title: &str = config[0]["title"][0].as_str().unwrap();
@@ -94,16 +123,21 @@ impl Generate {
         buffer
     }
 
-    /// Save_template function will save a given file to a given path
+    /// save_file function will save a given file to a given path
     /// File will throw an error if the directory already exists.
-    fn save_template(path: &String, file_contents: &String) {
+    fn save_file(path: &str, file_contents: &str, filename: &str) {
         // Create the directory id it doesn't exist
-        fs::create_dir_all(path).expect("error cannot create dir");
+        fs::create_dir_all(path).expect("Error cannot create dir");
         // Create the full path with a filename
-        let filename: String = path.as_str().to_owned() + "/index.htm";
         // Write the post to a file
         let cleaned = Generate::clean_up(file_contents);
-        fs::write(filename, cleaned).expect("Unable to write file");
+
+
+        let test: String = MAIN_SEPARATOR.to_string();
+        
+        let full_path: String = path.to_owned() + test.as_str() + &filename.replace(".md", ".htm").as_str();
+
+        fs::write(full_path, cleaned).expect("Unable to write file");
     }
 
     /// Get_html_template will return the base template for the
@@ -127,13 +161,14 @@ impl Generate {
                     {{%elements%}}
                 </body>
                 </html>";
+
         String::from(html)
     }
 
     /// Clean_up function wil remove any trace of the left over
-    /// variables we might of missed during the markdown HTML 
+    /// variables we might of missed during the markdown HTML
     /// file generation.
-    pub fn clean_up(html: &String) -> String {
+    pub fn clean_up(html: &str) -> String {
         let search_param = "{{%elements%}}";
         let result = html.replace(search_param, "");
         result

@@ -1,6 +1,6 @@
 //! Config module
-//! 
-//! The config module is meant to hold all 
+//!
+//! The config module is meant to hold all
 //! the configuration data and functionality
 //! to generate the necessary config files.
 
@@ -13,16 +13,16 @@ use yaml_rust::{YamlEmitter, YamlLoader};
 pub struct Config {
     pub directory_path: String,
     config_file_path: String,
-    posts_path: String
+    posts_path: String,
 }
 
-/// Config implementation is meant to hold 
-/// all of the configuration functionality 
+/// Config implementation is meant to hold
+/// all of the configuration functionality
 /// and object.
 impl Config {
 
     /// new function will get the current directory
-    /// and generate the correct paths based on the 
+    /// and generate the correct paths based on the
     /// gotten directory path.
     pub fn new() -> Config {
         let root_path = env::current_dir().expect("Cannot get current directory");
@@ -34,7 +34,7 @@ impl Config {
         Config {
             directory_path: home_path,
             config_file_path: config_path,
-            posts_path: post_config
+            posts_path: post_config,
         }
     }
 
@@ -49,7 +49,7 @@ impl Config {
         }
     }
 
-    /// get_full_config_file will return a copy of the 
+    /// get_full_config_file will return a copy of the
     /// fully configured configuration file path.
     pub fn get_full_config_file(&self) -> &str {
         self.config_file_path.as_str()
@@ -57,8 +57,16 @@ impl Config {
 
     /// get_full_posts_file will return a copy of the
     /// full path to the posts directory.
-    pub fn get_full_posts_file (&self) -> &str {
+    pub fn get_full_posts_file(&self) -> &str {
         self.posts_path.as_str()
+    }
+
+    pub fn get_base_path(&self) -> &str {
+        self.directory_path.as_str()
+    }
+
+    pub fn get_dist_path(&self) -> String {
+        self.directory_path.clone().to_owned() + "/dist"
     }
 
     /// generate_config_file function will generate
@@ -87,7 +95,7 @@ impl Config {
         fs::write(full_path, out_str).expect("unable to write file"); // Save the file
     }
 
-    /// generate_config_directories will generate all the necessary 
+    /// generate_config_directories will generate all the necessary
     /// directories for the application.
     fn generate_config_directories(path: &str) {
         let sub_folders = vec!["/template", "/posts", "/dist"];
