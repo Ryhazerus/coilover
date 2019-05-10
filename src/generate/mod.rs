@@ -34,11 +34,13 @@ impl Generate {
         if posts.len() <= 100 && posts.len() > 0 {
             n_workers = posts.len();
         }
+
         println!("number of threads: {}", n_workers);
-        // Create a threadpool with the amount of workers
+
+        // Create a thread pool with the amount of workers
         let pool = ThreadPool::new(n_workers);
 
-        // Loop over the defined paths and spawn a thread to handle the mark down converions per post.
+        // Loop over the defined paths and spawn a thread to handle the mark down conversions per post.
         for post in posts {
             let filename_split: Vec<&str> = post.split(MAIN_SEPARATOR).collect();
 
